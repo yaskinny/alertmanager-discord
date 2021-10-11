@@ -25,7 +25,23 @@ alerting:                 receivers:
 
 
 ```
-
+## Tag Users and Roles
+In discord find Your role/user UID with `\@<roleName|username>`. For user copy 18 digits between `<@>` and for roles copy &+digits between `<@>` and add them under `annotations` part of Your alert. If IDs does not match with `^(&)?\d{18}$` regex it will ignore that ID. example:  
+```
+---
+groups:
+- name: Hello
+  rules:
+  - alert: InstanceIsDown
+    expr: up{} == 0
+    for: 5m
+    annotations:
+      summary: "Instance is down"
+      description: "{{ $labels.instance }} is down."
+      # add your ids here comma-separated
+      mustTags: "&896806229014333333,513283200966063333"
+...
+```
 ## Example alertmanager config:
 
 ```
@@ -53,7 +69,3 @@ receivers:
   webhook_configs:
   - url: 'http://localhost:9094'
 ```
-
-## Docker
-
-If you run a fancy docker/k8s infra, you can find the docker hub repo here: https://hub.docker.com/r/benjojo/alertmanager-discord/
