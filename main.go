@@ -25,6 +25,7 @@ type alertManAlert struct {
 	Annotations struct {
 		Description string `json:"description"`
 		Summary     string `json:"summary"`
+		MustTags    string `json:"mustTags"`
 	} `json:"annotations"`
 	EndsAt       string            `json:"endsAt"`
 	GeneratorURL string            `json:"generatorURL"`
@@ -36,7 +37,8 @@ type alertManAlert struct {
 type alertManOut struct {
 	Alerts            []alertManAlert `json:"alerts"`
 	CommonAnnotations struct {
-		Summary string `json:"summary"`
+		MustTags string `json:"mustTags"`
+		Summary  string `json:"summary"`
 	} `json:"commonAnnotations"`
 	CommonLabels struct {
 		Alertname string `json:"alertname"`
@@ -115,6 +117,16 @@ func sendWebhook(amo *alertManOut) {
 
 		if amo.CommonAnnotations.Summary != "" {
 			DO.Content = fmt.Sprintf(" === %s === \n", amo.CommonAnnotations.Summary)
+		}
+		if amo.CommonAnnotations.MustTags != "" {
+			tagIds := strings.Split(amo.CommonAnnotations.MustTags, ",")
+			regex := regexp.MustCompile("^(&)?[0-9]{18}$")
+			for _, g := range tagIds {
+				if okay := regex.Match([]byte(g)); okay {
+					DO.Content += fmt.Sprintf("<@%v> ", g)
+				}
+			}
+			DO.Content += "\n"
 		}
 
 		for _, alert := range alerts {
